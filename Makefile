@@ -1,6 +1,6 @@
 NAME = pipex
-SRCS = pipex.c first_setting.c child.c
-SRCS_B = pipex_bonus.c first_setting_bonus.c child_bonus.c heredoc_bonus.c
+SRCS = pipex.c first_setting.c child.c command.c
+SRCS_B = pipex_bonus.c first_setting_bonus.c child_bonus.c heredoc_bonus.c command_bonus.c
 INCS = pipex.h
 INCS_B = pipex_bonus.h
 LIBFT = -Ilibft -Llibft -lft

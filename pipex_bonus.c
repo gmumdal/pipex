@@ -6,34 +6,56 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 19:10:45 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/02 18:36:11 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/04 14:46:25 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex_bonus.h"
 
-void	error_print(int flag)
+int	main(int ac, char **av, char **env)
 {
-	if (flag == 1)
-		write(2, "Error\n", 6);
-	else if (flag == 2)
-		write(2, "Malloc Error\n", 13);
-	exit(-1);
+	int		i;
+	t_data	data;
+	char	*heredoc;
+
+	if (ac < 5)
+		error_print(2);
+	heredoc = 0;
+	if (ft_strncmp("here_doc", av[1], ft_strlen(av[1])) == 0)
+	{
+		if (ac < 6)
+			error_print(2);
+		heredoc_setting(ac, av, &data, env);
+		make_heredoc(av, &heredoc);
+		make_child_heredoc(&data, heredoc, env);
+	}
+	else
+	{
+		first_setting(ac, av, &data, env);
+		i = 0;
+		while (i < data.cmd_num)
+			make_child(&data, av, i++, env);
+	}
+	exit(ending(&data, heredoc));
 }
 
-void	close_fd(t_data *data, int *fd)
+int	ending(t_data *data, char *heredoc)
 {
-	int	i;
+	int		status;
+	int		code;
+	int		i;
 
 	i = 0;
-	while (i < data->cmd_num - 1)
+	close_pipe(data, data->cmd_num);
+	while (i++ < data->cmd_num)
 	{
-		close(data->pipe[i][0]);
-		close(data->pipe[i][1]);
-		i++;
+		if (wait(&status) == data->id[data->cmd_num - 1])
+			code = WEXITSTATUS(status);
 	}
-	close(fd[0]);
-	close(fd[1]);
+	ending_free(data);
+	free(heredoc);
+	unlink(heredoc);
+	return (code);
 }
 
 void	ending_free(t_data *data)
@@ -51,40 +73,12 @@ void	ending_free(t_data *data)
 	free(data->id);
 }
 
-void	ending(t_data *data, int *fd, char *heredoc)
+void	error_print(int flag)
 {
-	int		status;
-
-	close_fd(data, fd);
-	while (42)
-	{
-		if (wait(&status) == -1)
-			break ;
-	}
-	ending_free(data);
-	unlink(heredoc);
-	free(heredoc);
-}
-
-int	main(int ac, char **av, char **env)
-{
-	int		fd[2];
-	int		i;
-	t_data	data;
-	char	*heredoc;
-
-	if (ac == 1)
-		error_print(1);
-	if (open_check(ac, av, fd, &heredoc) == 1)
-	{
-		heredoc_setting(ac, av, &data, env);
-		make_heredoc(fd, av, heredoc);
-	}
-	else
-		first_setting(ac, av, &data, env);
-	i = 0;
-	while (i < data.cmd_num)
-		make_child(&data, fd, i++, env);
-	ending(&data, fd, heredoc);
-	return (0);
+	ft_putstr_fd("pipex: ", 2);
+	if (flag == 2)
+		ft_putstr_fd("input: ", 2);
+	ft_putstr_fd(strerror(flag), 2);
+	ft_putstr_fd("\n", 2);
+	exit(1);
 }

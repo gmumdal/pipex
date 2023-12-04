@@ -6,125 +6,77 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:24:18 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/02 13:13:09 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/03 18:27:54 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	command_exec_first(t_data *data, int fd, char **env)
-{
-	char	**command;
-	char	*path;
-
-	close(data->pipe[0][0]);
-	command = ft_split(data->cmd[0], ' ');
-	if (command == 0)
-		error_print(2);
-	path = path_search(data->path, command[0]);
-	if (dup2(fd, 0) == -1)
-		error_print(1);
-	close(fd);
-	if (dup2(data->pipe[0][1], 1) == -1)
-		error_print(1);
-	close(data->pipe[0][1]);
-	execve(path, command, env);
-}
-
-void	command_exec_mid(t_data *data, int i, char **env)
-{
-	char	**command;
-	char	*path;
-	int		j;
-
-	j = 0;
-	while (i > 1 && j < i - 2)
-	{
-		close(data->pipe[j][0]);
-		close(data->pipe[j][1]);
-		j++;
-	}
-	close(data->pipe[i][0]);
-	close(data->pipe[i - 1][1]);
-	command = ft_split(data->cmd[i], ' ');
-	if (command == 0)
-		error_print(2);
-	path = path_search(data->path, command[0]);
-	if (dup2(data->pipe[i - 1][0], 0) == -1)
-		error_print(1);
-	close(data->pipe[i - 1][0]);
-	if (dup2(data->pipe[i][1], 1) == -1)
-		error_print(1);
-	close(data->pipe[i][1]);
-	execve(path, command, env);
-}
-
-void	command_exec_end(t_data *data, int fd, char **env)
-{
-	char	**command;
-	char	*path;
-	int		j;
-
-	j = 0;
-	while (data->cmd_num > 2 && j < data->cmd_num - 2)
-	{
-		close(data->pipe[j][0]);
-		close(data->pipe[j][1]);
-		j++;
-	}
-	close(data->pipe[data->cmd_num - 2][1]);
-	command = ft_split(data->cmd[data->cmd_num - 1], ' ');
-	if (command == 0)
-		error_print(2);
-	path = path_search(data->path, command[0]);
-	if (dup2(data->pipe[data->cmd_num - 2][0], 0) == -1)
-		error_print(1);
-	close(data->pipe[data->cmd_num - 2][0]);
-	if (dup2(fd, 1) == -1)
-		error_print(1);
-	close(fd);
-	execve(path, command, env);
-}
-
-void	command_exec_only(t_data *data, int *fd, char **env)
-{
-	char	**command;
-	char	*path;
-
-	command = ft_split(data->cmd[0], ' ');
-	if (command == 0)
-		error_print(2);
-	path = path_search(data->path, command[0]);
-	if (dup2(fd[0], 0) == -1)
-		error_print(1);
-	close(fd[0]);
-	if (dup2(fd[1], 1) == -1)
-		error_print(1);
-	close(fd[1]);
-	execve(path, command, env);
-}
-
-void	make_child(t_data *data, int *fd, int i, char **env)
+void	make_child(t_data *data, char **av, int i, char **env)
 {
 	if (i < data->cmd_num - 1)
 	{
-		if (pipe(data->pipe[i]) == -1)
-			error_print(1);
+		if (pipe(data->pipe) == -1)
+			error_print(errno);
 		data->id[i] = fork();
 		if (data->id[i] == 0)
 		{
 			if (i == 0)
-				command_exec_first(data, fd[0], env);
-			else
-				command_exec_mid(data, i, env);
+				command_exec_first(data, av, env);
 		}
 	}
 	else if (i == data->cmd_num - 1)
 	{
 		data->id[i] = fork();
-		if (data->id[i] == 0 && i != 0)
-			command_exec_end(data, fd[1], env);
-		else if (data->id[i] == 0 && i == 0)
-			command_exec_only(data, fd, env);
+		if (data->id[i] == 0)
+			command_exec_end(data, av, env);
 	}
+}
+
+void	command_exec_first(t_data *data, char **av, char **env)
+{
+	int		fd;
+	char	**command;
+	char	*path;
+
+	fd = open(av[1], O_RDONLY);
+	if (fd == -1)
+		error_print(errno);
+	close(data->pipe[0]);
+	command = make_command(data->cmd[0]);
+	if (command == 0)
+		error_print(errno);
+	path = path_search(data->path, command[0]);
+	if (dup2(fd, 0) == -1)
+		error_print(errno);
+	close(fd);
+	if (dup2(data->pipe[1], 1) == -1)
+		error_print(errno);
+	close(data->pipe[1]);
+	if (execve(path, command, env) == -1)
+		error_print(errno);
+}
+
+void	command_exec_end(t_data *data, char **av, char **env)
+{
+	char	**command;
+	char	*path;
+	int		fd;
+
+	fd = open(av[4], O_WRONLY | O_TRUNC | O_CREAT, 0644);
+	if (fd == -1)
+		error_print(errno);
+	close(data->pipe[1]);
+	command = make_command(data->cmd[1]);
+	if (command == 0)
+		error_print(errno);
+	path = path_search(data->path, command[0]);
+	if (dup2(data->pipe[0], 0) == -1)
+		error_print(errno);
+	close(data->pipe[0]);
+	if (dup2(fd, 1) == -1)
+		error_print(errno);
+	close(fd);
+	if (execve(path, command, env) == -1)
+		error_print(errno);
 }
