@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 19:11:07 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 14:43:20 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/04 18:48:32 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,5 +51,6 @@ int		cmd_countword(char *cmd, char sep);
 void	cmd_input(char *toss, char **cmd, char sep);
 void	make_child_heredoc(t_data *data, char *heredoc, char **env);
 void	command_exec_first_heredoc(t_data *data, char *heredoc, char **env);
+void	command_exec_end_heredoc(t_data *data, char **env);
 
 #endif

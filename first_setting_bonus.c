@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 14:13:01 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 14:05:58 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/04 18:52:03 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,18 +33,38 @@ void	first_setting(int ac, char **av, t_data *data, char **env)
 	data->cmd = av + 2;
 }
 
+void	heredoc_setting(int ac, char **av, t_data *data, char **env)
+{
+	int	i;
+
+	data->pipe = (int **)malloc(sizeof(int *) * (ac - 5));
+	data->id = (pid_t *)malloc(sizeof(pid_t) * (ac - 4));
+	if (data->pipe == 0 || data->id == 0)
+		error_print(errno);
+	i = 0;
+	while (i < ac - 4)
+	{
+		data->pipe[i] = (int *)malloc(sizeof(int) * 2);
+		if (data->pipe[i] == 0)
+			error_print(errno);
+		i++;
+	}
+	data->path = path_setting(env);
+	data->cmd_num = ac - 4;
+	data->cmd = av + 3;
+}
+
 char	**path_setting(char **env)
 {
 	char	**env_path;
 	int		i;
 
 	i = 0;
-	while (*env && ft_strncmp(*env, "PATH", 4) != 0)
+	while (*env && ft_strncmp(*env, "PATH=", 5) != 0)
 		env++;
 	if (*env == 0)
 		*env = "12345/usr/gnu/bin:/usr/local/bin:/bin:/usr/bin:";
-	while (i++ < 5)
-		(*env)++;
+	(*env) += 5;
 	env_path = ft_split(*env, ':');
 	if (env_path == 0)
 		error_print(errno);

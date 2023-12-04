@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/02 15:47:48 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 14:06:05 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/04 18:52:08 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,27 +57,6 @@ void	make_heredoc(char **av, char **heredoc)
 	close(fd);
 }
 
-void	heredoc_setting(int ac, char **av, t_data *data, char **env)
-{
-	int	i;
-
-	data->pipe = (int **)malloc(sizeof(int *) * (ac - 5));
-	data->id = (pid_t *)malloc(sizeof(pid_t) * (ac - 4));
-	if (data->pipe == 0 || data->id == 0)
-		error_print(errno);
-	i = 0;
-	while (i < ac - 4)
-	{
-		data->pipe[i] = (int *)malloc(sizeof(int) * 2);
-		if (data->pipe[i] == 0)
-			error_print(errno);
-		i++;
-	}
-	data->path = path_setting(env);
-	data->cmd_num = ac - 4;
-	data->cmd = av + 3;
-}
-
 void	make_child_heredoc(t_data *data, char *heredoc, char **env)
 {
 	int	i;
@@ -102,7 +81,7 @@ void	make_child_heredoc(t_data *data, char *heredoc, char **env)
 		{
 			data->id[i] = fork();
 			if (data->id[i] == 0)
-				command_exec_end(data, env);
+				command_exec_end_heredoc(data, env);
 		}
 	}
 }
@@ -127,6 +106,32 @@ void	command_exec_first_heredoc(t_data *data, char *heredoc, char **env)
 	if (dup2(data->pipe[0][1], 1) == -1)
 		error_print(errno);
 	close(data->pipe[0][1]);
+	if (execve(path, command, env) == -1)
+		error_print(errno);
+}
+
+void	command_exec_end_heredoc(t_data *data, char **env)
+{
+	char	**command;
+	char	*path;
+	int		fd;
+
+	close_pipe(data, data->cmd_num - 1);
+	fd = open(data->cmd[data->cmd_num],
+			O_WRONLY | O_APPEND | O_CREAT, 0644);
+	if (fd == -1)
+		error_print(errno);
+	close(data->pipe[data->cmd_num - 2][1]);
+	command = make_command(data->cmd[data->cmd_num - 1]);
+	if (command == 0)
+		error_print(errno);
+	path = path_search(data->path, command[0]);
+	if (dup2(data->pipe[data->cmd_num - 2][0], 0) == -1)
+		error_print(errno);
+	close(data->pipe[data->cmd_num - 2][0]);
+	if (dup2(fd, 1) == -1)
+		error_print(errno);
+	close(fd);
 	if (execve(path, command, env) == -1)
 		error_print(errno);
 }

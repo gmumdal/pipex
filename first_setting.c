@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 14:13:01 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/03 20:19:11 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/04 18:51:22 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,11 @@ char	**path_setting(char **env)
 	int		i;
 
 	i = 0;
-	while (*env && ft_strncmp(*env, "PATH", 4) != 0)
+	while (*env && ft_strncmp(*env, "PATH=", 5) != 0)
 		env++;
 	if (*env == 0)
 		*env = "12345/usr/gnu/bin:/usr/local/bin:/bin:/usr/bin:";
-	while (i++ < 5)
-		(*env)++;
+	(*env) += 5;
 	env_path = ft_split(*env, ':');
 	if (env_path == 0)
 		error_print(errno);
