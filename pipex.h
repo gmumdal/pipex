@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 19:11:07 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/03 22:42:48 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/05 15:00:09 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,6 @@ char	**make_command(char *cmd);
 char	**cmd_split(char *cmd, char sep);
 int		cmd_countword(char *cmd, char sep);
 void	cmd_input(char *toss, char **cmd, char sep);
+void	command_error(char *command);
 
 #endif

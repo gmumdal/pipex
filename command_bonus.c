@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/03 16:02:17 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 14:57:52 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/05 15:25:04 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ char	**make_command(char *cmd)
 	char	**tmp;
 
 	if (ft_strchr(cmd, '\'') == 0 && ft_strchr(cmd, '\"') == 0)
-		tmp = ft_split(cmd, ' ');
+		tmp = cmd_split(cmd, 0);
 	else if (ft_strchr(cmd, '\'') != 0 && ft_strchr(cmd, '\"') != 0)
 	{
 		if (ft_strchr(cmd, '\'') < ft_strchr(cmd, '\"'))
@@ -65,18 +65,14 @@ int	cmd_countword(char *cmd, char sep)
 	flag = 1;
 	while (*cmd)
 	{
-		if (*cmd == sep && flag != 2)
-		{
-			count++;
+		if (*cmd == '\\')
+			cmd++;
+		else if (*cmd == sep && flag != 2 && count++ > -1)
 			flag = 2;
-		}
 		else if (*cmd == sep && flag == 2)
 			flag = 1;
-		else if (*cmd != ' ' && flag == 1)
-		{
-			count++;
+		else if (*cmd != ' ' && flag == 1 && count++ > -1)
 			flag = 0;
-		}
 		else if (*cmd == ' ' && flag != 2)
 			flag = 1;
 		cmd++;
@@ -94,8 +90,9 @@ void	cmd_input(char *toss, char **cmd, char sep)
 		(*cmd)++;
 		while (**cmd != sep)
 		{
-			toss[i++] = **cmd;
-			(*cmd)++;
+			if (**cmd == '\\')
+				(*cmd)++;
+			toss[i++] = *(*cmd)++;
 		}
 		(*cmd)++;
 	}
@@ -103,8 +100,9 @@ void	cmd_input(char *toss, char **cmd, char sep)
 	{
 		while (**cmd != ' ' && **cmd != 0)
 		{
-			toss[i++] = **cmd;
-			(*cmd)++;
+			if (**cmd == '\\')
+				(*cmd)++;
+			toss[i++] = *(*cmd)++;
 		}
 	}
 	while (**cmd == ' ')

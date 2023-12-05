@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/01 15:24:18 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 15:01:03 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/05 15:15:09 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	command_exec_first(t_data *data, char **av, char **env)
 		error_print(errno);
 	close(data->pipe[0][1]);
 	if (execve(path, command, env) == -1)
-		error_print(errno);
+		error_print(126);
 }
 
 void	command_exec_mid(t_data *data, int i, char **env)
@@ -78,7 +78,7 @@ void	command_exec_mid(t_data *data, int i, char **env)
 		error_print(errno);
 	close(data->pipe[i][1]);
 	if (execve(path, command, env) == -1)
-		error_print(errno);
+		error_print(126);
 }
 
 void	command_exec_end(t_data *data, char **env)
@@ -104,7 +104,7 @@ void	command_exec_end(t_data *data, char **env)
 		error_print(errno);
 	close(fd);
 	if (execve(path, command, env) == -1)
-		error_print(errno);
+		error_print(126);
 }
 
 void	close_pipe(t_data *data, int i)

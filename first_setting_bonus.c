@@ -6,7 +6,7 @@
 /*   By: hyeongsh <hyeongsh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/30 14:13:01 by hyeongsh          #+#    #+#             */
-/*   Updated: 2023/12/04 18:52:03 by hyeongsh         ###   ########.fr       */
+/*   Updated: 2023/12/05 15:30:59 by hyeongsh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ char	**path_setting(char **env)
 	while (*env && ft_strncmp(*env, "PATH=", 5) != 0)
 		env++;
 	if (*env == 0)
-		*env = "12345/usr/gnu/bin:/usr/local/bin:/bin:/usr/bin:";
+		*env = "PATH=/usr/gnu/bin:/usr/local/bin:/bin:/usr/bin:";
 	(*env) += 5;
 	env_path = ft_split(*env, ':');
 	if (env_path == 0)
@@ -77,8 +77,11 @@ char	*path_search(char **env, char *command)
 	int		i;
 
 	i = 0;
-	if (access(command, F_OK) == 0)
+	tmp = 0;
+	if (ft_strchr(command, '/') && access(command, F_OK) == 0)
 		return (command);
+	if (ft_strchr(command, '/'))
+		command_error(command);
 	while (env[i])
 	{
 		tmp = ft_strjoin(env[i++], command, "/");
@@ -90,11 +93,14 @@ char	*path_search(char **env, char *command)
 		tmp = 0;
 	}
 	if (tmp == 0)
-	{
-		ft_putstr_fd("pipex: ", 2);
-		ft_putstr_fd(command, 2);
-		ft_putstr_fd(": command not found\n", 2);
-		exit(127);
-	}	
+		command_error(command);
 	return (tmp);
+}
+
+void	command_error(char *command)
+{
+	ft_putstr_fd("pipex: ", 2);
+	ft_putstr_fd(command, 2);
+	ft_putstr_fd(": command not found\n", 2);
+	exit(127);
 }
